@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import preactLogo from "../../assets/preact.svg";
 import "./style.css";
 import { ProcessInfo } from "../../models/Process";
@@ -6,6 +6,15 @@ import { ProcessInfo } from "../../models/Process";
 export function Home() {
   const [processes, setProcesses] = useState<ProcessInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("");
+
+  const filteredProcesses = useMemo<ProcessInfo[]>(
+    () =>
+      processes.filter((proc) =>
+        proc.name.toLowerCase().includes(filter.toLowerCase()),
+      ),
+    [processes, filter],
+  );
 
   const fetchProcesses = async () => {
     try {
@@ -28,23 +37,31 @@ export function Home() {
   if (loading) return <div>Loading processes...</div>;
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th>PID</th>
-          <th>Name</th>
-          <th>Memory</th>
-        </tr>
-      </thead>
-      <tbody>
-        {processes.map((proc) => (
-          <tr key={proc.pid}>
-            <td>{proc.pid}</td>
-            <td>{proc.name}</td>
-            <td>{proc.memory}</td>
+    <div class="pt-4 w-full flex flex-col gap-4">
+      <input
+        class="outline-1"
+        type="text"
+        value={filter}
+        onInput={(e) => setFilter(e.currentTarget.value)}
+      />
+      <table>
+        <thead>
+          <tr>
+            <th>PID</th>
+            <th>Name</th>
+            <th>Memory</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {filteredProcesses.map((proc) => (
+            <tr key={proc.pid}>
+              <td>{proc.pid}</td>
+              <td>{proc.name}</td>
+              <td>{proc.memory}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
