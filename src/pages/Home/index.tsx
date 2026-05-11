@@ -3,6 +3,8 @@ import "./style.css";
 import { ProcessInfo } from "../../models/Process";
 import { SortingTriangle } from "../../components/SortingTriangle";
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 type Header = {
   id: string;
   name: string;
@@ -68,7 +70,7 @@ export function Home() {
         order: sortedHeader?.order ?? "asc",
       });
       const response = await fetch(
-        `http://localhost:3000/processes?${sortParams.toString()}`,
+        `${SERVER_URL}/processes?${sortParams.toString()}`,
       );
       const data = await response.json();
       setProcesses(data);
@@ -117,7 +119,18 @@ export function Home() {
             {filteredProcesses.map((proc) => (
               <tr key={proc.pid}>
                 <td>{proc.pid}</td>
-                <td>{proc.name}</td>
+                <td>
+                  <div class="flex">
+                    {proc.iconPath !== "" ? (
+                      <img
+                        class="w-6 h-6 mr-2 select-none"
+                        src={`${SERVER_URL}/assets/${proc.iconPath}`}
+                        alt={proc.name}
+                      />
+                    ) : null}
+                    {proc.name}
+                  </div>
+                </td>
                 <td>
                   {new Intl.NumberFormat("fr-FR").format(proc.memory) + " kB"}
                 </td>
