@@ -56,6 +56,11 @@ export function Home() {
     [processes, filter],
   );
 
+  const totalMemory = useMemo<number>(
+    () => filteredProcesses.map((p) => p.memory).reduce((a, b) => a + b, 0),
+    [filteredProcesses],
+  );
+
   const fetchProcesses = async () => {
     try {
       const sortParams = new URLSearchParams({
@@ -83,40 +88,48 @@ export function Home() {
   if (loading) return <div>Loading processes...</div>;
 
   return (
-    <div class="pt-4 w-full flex flex-col gap-4">
+    <div class="pt-4 w-full flex flex-col h-[90vh] gap-4">
       <input
-        class="outline-1"
+        class="outline-1 px-2"
         type="text"
         value={filter}
         onInput={(e) => setFilter(e.currentTarget.value)}
       />
-      <table>
-        <thead>
-          <tr>
-            {headers.map((h) => (
-              <th
-                key={h.id}
-                class="cursor-pointer"
-                onClick={() => onChangeSorting(h.id)}
-              >
-                <div class="flex">
-                  <SortingTriangle className="mr-2" order={h.order} />
-                  {h.name}
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProcesses.map((proc) => (
-            <tr key={proc.pid}>
-              <td>{proc.pid}</td>
-              <td>{proc.name}</td>
-              <td>{proc.memory}</td>
+      <main class="grow overflow-auto">
+        <table class="w-full">
+          <thead>
+            <tr>
+              {headers.map((h) => (
+                <th
+                  key={h.id}
+                  class="cursor-pointer"
+                  onClick={() => onChangeSorting(h.id)}
+                >
+                  <div class="flex">
+                    <SortingTriangle className="mr-2" order={h.order} />
+                    {h.name}
+                  </div>
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredProcesses.map((proc) => (
+              <tr key={proc.pid}>
+                <td>{proc.pid}</td>
+                <td>{proc.name}</td>
+                <td>
+                  {new Intl.NumberFormat("fr-FR").format(proc.memory) + " kB"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </main>
+      <div class="bg-purple-200 p-4 border-t border-purple-300">
+        total: {filteredProcesses.length} total memory:{" "}
+        {new Intl.NumberFormat("fr-FR").format(totalMemory) + " kB"}
+      </div>
     </div>
   );
 }
