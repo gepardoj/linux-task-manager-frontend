@@ -1,24 +1,23 @@
 import { HTMLAttributes } from "preact";
 import { Dispatch, StateUpdater } from "preact/hooks";
-import { Header } from "../pages/Home";
+import { AbstractPopup } from "../../../components/AbstractPopup";
+import { Header } from "./ProcessesTable";
 
 type Element = Header; //{ name: string; enabled: boolean };
 
-export const Popup = (
+export const HeadersConfigPopup = (
   params: HTMLAttributes<HTMLDivElement> & {
-    display: boolean;
+    isOpen: boolean;
+    onClose: () => void;
     elementsState: [Element[], Dispatch<StateUpdater<Element[]>>];
   },
 ) => {
-  const { elementsState, display, ...rest } = params;
+  const { elementsState, isOpen, onClose, ...rest } = params;
   const [elements, setElements] = elementsState;
   return (
-    <div
-      className={`flex flex-col items-start gap-1 bg-purple-300 border-purple-500 rounded border-2 p-4 z-10 absolute ${display ? "block" : "hidden"}`}
-      {...rest}
-    >
+    <AbstractPopup isOpen={isOpen} onClose={onClose} {...rest}>
       {elements.map((el, i) => (
-        <div key={i}>
+        <div key={i} class="self-start">
           <input
             class="mr-2"
             type="checkbox"
@@ -32,6 +31,6 @@ export const Popup = (
           <label>{el.name}</label>
         </div>
       ))}
-    </div>
+    </AbstractPopup>
   );
 };
