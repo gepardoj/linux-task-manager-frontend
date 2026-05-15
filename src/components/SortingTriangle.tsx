@@ -10,6 +10,19 @@ const ascendingStyle = `
     border-b-15 border-b-purple-700
 `;
 
+export function changeSortOrder(
+  order: "asc" | "desc" | null,
+): "asc" | "desc" | null {
+  switch (order) {
+    case "asc":
+      return "desc";
+    case "desc":
+      return null;
+    case null:
+      return "asc";
+  }
+}
+
 export function SortingTriangle({
   className,
   order,

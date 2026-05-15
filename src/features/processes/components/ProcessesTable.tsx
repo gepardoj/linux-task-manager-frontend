@@ -1,10 +1,11 @@
-import { SERVER_URL } from "@/constants/constants";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { ProcessInfo } from "../Process";
 import { CogIcon } from "@/icons/CogIcon";
 import { ProcessMenu } from "./ProcessMenu";
 import { HeadersConfigPopup } from "./HeadersConfigPopup";
-import { SortingTriangle } from "@/components/SortingTriangle";
+import { changeSortOrder, SortingTriangle } from "@/components/SortingTriangle";
+import { apiClient, SERVER_URL } from "@/services/global.api";
+import { useQuery } from "@tanstack/react-query";
 
 export type Header = {
   id: keyof ProcessInfo;
@@ -20,28 +21,32 @@ const defaultHeaders: Header[] = [
   { id: "memory", name: "Memory", order: null, visible: true },
 ];
 
-function changeSortOrder(order: "asc" | "desc" | null): "asc" | "desc" | null {
-  switch (order) {
-    case "asc":
-      return "desc";
-    case "desc":
-      return null;
-    case null:
-      return "asc";
-  }
-}
-
 export function ProcessesTable() {
-  const [processes, setProcesses] = useState<ProcessInfo[] | null>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [headers, setHeaders] = useState<Header[]>(defaultHeaders);
   const [headersPopupOpen, setHeadersPopupOpen] = useState(false);
   const [selectedPID, setSelectedPID] = useState<number | null>(null);
+  const {
+    data: processes,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery<ProcessInfo[]>({
+    queryKey: ["processes", headers],
+
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+    queryFn: async () => {
+      const sortParams = new URLSearchParams({
+        sortBy: sortedHeader?.id ?? "pid",
+        order: sortedHeader?.order ?? "asc",
+      });
+      const res = await apiClient.get(`/processes?${sortParams.toString()}`);
+      return res.data;
+    },
+  });
 
   function onChangeSorting(id: string) {
-    console.log(id, headers);
     setHeaders((oldHeaders) =>
       oldHeaders.map((h) =>
         h.id === id
@@ -84,30 +89,6 @@ export function ProcessesTable() {
     [filteredProcesses],
   );
 
-  const fetchProcesses = async () => {
-    try {
-      const sortParams = new URLSearchParams({
-        sortBy: sortedHeader?.id ?? "pid",
-        order: sortedHeader?.order ?? "asc",
-      });
-      const response = await fetch(
-        `${SERVER_URL}/processes?${sortParams.toString()}`,
-      );
-      const data = await response.json();
-      setProcesses(data);
-      setError(null);
-    } catch (err) {
-      setError(`Failed to fetch processes: ${err}`);
-      setProcesses([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const timer = fetchProcesses();
-  }, [sortedHeader]);
-
   return (
     <>
       <div class="flex gap-2 px-4">
@@ -123,17 +104,21 @@ export function ProcessesTable() {
         />
       </div>
       {error && <div class="text-red-500">{error}</div>}
-      {loading && <div>Loading...</div>}
+      {isLoading && <div>Loading...</div>}
       <ProcessMenu
         isOpen={selectedPID !== null}
         pid={selectedPID ?? 0}
-        onClose={() => setSelectedPID(null)}
+        onClose={() => {
+          setSelectedPID(null);
+          refetch();
+        }}
       />
       <HeadersConfigPopup
         isOpen={headersPopupOpen}
         onClose={() => setHeadersPopupOpen(false)}
         elementsState={[headers, setHeaders]}
       />
+      {/*****  TABLE *****/}
       <div class="overflow-auto grow">
         <table class="w-full">
           <thead class="relative">

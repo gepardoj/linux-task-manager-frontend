@@ -1,7 +1,11 @@
 import { HTMLAttributes } from "preact";
 import { AbstractPopup } from "../../../components/AbstractPopup";
+import { terminateProcess, killProcess } from "../api";
 
-const elements = [{ name: "Kill" }, { name: "Terminate" }];
+const elements = [
+  { name: "Kill (forced)", action: killProcess },
+  { name: "Terminate (safe)", action: terminateProcess },
+];
 
 export function ProcessMenu(
   params: HTMLAttributes<HTMLDivElement> & {
@@ -18,7 +22,7 @@ export function ProcessMenu(
         <button
           key={i}
           class="cursor-pointer text-left hover:bg-purple-400 rounded px-2 py-1"
-          onClick={() => console.log(pid)}
+          onClick={() => el.action(pid).then(onClose)}
         >
           {el.name}
         </button>

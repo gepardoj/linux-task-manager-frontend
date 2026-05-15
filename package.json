@@ -7,8 +7,11 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@tanstack/react-query": "^5.100.10",
+		"axios": "^1.16.1",
 		"preact": "^10.26.9",
-		"preact-iso": "^2.12.0"
+		"preact-iso": "^2.12.0",
+		"sonner": "^2.0.7"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.10.2",
