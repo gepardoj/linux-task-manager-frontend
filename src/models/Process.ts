@@ -3,4 +3,5 @@ export type ProcessInfo = {
   name: string;
   memory: number; //in Kb
   iconPath: string;
+  cmdline: string;
 };
