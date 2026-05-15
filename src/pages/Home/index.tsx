@@ -29,7 +29,8 @@ function changeSortOrder(order: "asc" | "desc" | null): "asc" | "desc" | null {
 }
 
 export function Home() {
-  const [processes, setProcesses] = useState<ProcessInfo[]>([]);
+  const [processes, setProcesses] = useState<ProcessInfo[] | null>([]);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
   const [headers, setHeaders] = useState<Header[]>(defaultHeaders);
@@ -52,9 +53,13 @@ export function Home() {
 
   const filteredProcesses = useMemo<ProcessInfo[]>(
     () =>
-      processes.filter((proc) =>
-        proc.name.toLowerCase().includes(filter.toLowerCase()),
-      ),
+      Array.isArray(processes)
+        ? processes.filter(
+            (proc) =>
+              proc.pid.toString().includes(filter.toLowerCase()) ||
+              proc.name.toLowerCase().includes(filter.toLowerCase()),
+          )
+        : [],
     [processes, filter],
   );
 
@@ -74,30 +79,32 @@ export function Home() {
       );
       const data = await response.json();
       setProcesses(data);
+      setError(null);
+      return setTimeout(fetchProcesses, 2000);
     } catch (err) {
-      console.log("Failed to fetch processes", err);
+      setError(`Failed to fetch processes: ${err}`);
+      setProcesses([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProcesses();
-    const inverval = setInterval(fetchProcesses, 1000);
-    return () => clearInterval(inverval);
+    const timer = fetchProcesses();
+    return () => timer.then((timer) => clearTimeout(timer));
   }, [sortedHeader]);
 
-  if (loading) return <div>Loading processes...</div>;
-
   return (
-    <div class="pt-4 w-full flex flex-col h-[90vh] gap-4">
+    <div class="pt-4 w-full flex flex-col gap-4">
       <input
         class="outline-1 px-2"
         type="text"
         value={filter}
         onInput={(e) => setFilter(e.currentTarget.value)}
       />
-      <main class="grow overflow-auto">
+      {error && <div class="text-red-500">{error}</div>}
+      {loading && <div>Loading...</div>}
+      <div class="overflow-auto grow">
         <table class="w-full">
           <thead>
             <tr>
@@ -138,7 +145,7 @@ export function Home() {
             ))}
           </tbody>
         </table>
-      </main>
+      </div>
       <div class="bg-purple-200 p-4 border-t border-purple-300">
         total: {filteredProcesses.length} total memory:{" "}
         {new Intl.NumberFormat("fr-FR").format(totalMemory) + " kB"}
