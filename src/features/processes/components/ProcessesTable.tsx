@@ -6,24 +6,12 @@ import { HeadersConfigPopup } from "./HeadersConfigPopup";
 import { changeSortOrder, SortingTriangle } from "@/components/SortingTriangle";
 import { apiClient, SERVER_URL } from "@/services/global.api";
 import { useQuery } from "@tanstack/react-query";
-
-export type Header = {
-  id: keyof ProcessInfo;
-  name: string;
-  visible: boolean;
-  order: "asc" | "desc" | null;
-};
-
-const defaultHeaders: Header[] = [
-  { id: "pid", name: "PID", order: "asc", visible: true },
-  { id: "name", name: "Name", order: null, visible: true },
-  { id: "cmdline", name: "Command Line", order: null, visible: true },
-  { id: "memory", name: "Memory", order: null, visible: true },
-];
+import { Header, useProcessesTableStore } from "../processes.store";
 
 export function ProcessesTable() {
   const [filter, setFilter] = useState("");
-  const [headers, setHeaders] = useState<Header[]>(defaultHeaders);
+  const { visibleColumns: headers, setVisibleColumns: setHeaders } =
+    useProcessesTableStore();
   const [headersPopupOpen, setHeadersPopupOpen] = useState(false);
   const [selectedPID, setSelectedPID] = useState<number | null>(null);
   const {
@@ -47,8 +35,8 @@ export function ProcessesTable() {
   });
 
   function onChangeSorting(id: string) {
-    setHeaders((oldHeaders) =>
-      oldHeaders.map((h) =>
+    setHeaders(
+      headers.map((h) =>
         h.id === id
           ? { ...h, order: changeSortOrder(h.order) }
           : { ...h, order: null },
@@ -93,7 +81,7 @@ export function ProcessesTable() {
     <>
       <div class="flex gap-2 px-4">
         <input
-          class="outline-1 grow"
+          class="outline-1 grow px-2"
           type="text"
           value={filter}
           onInput={(e) => setFilter(e.currentTarget.value)}

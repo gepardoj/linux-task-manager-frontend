@@ -1,15 +1,15 @@
 import { HTMLAttributes } from "preact";
 import { Dispatch, StateUpdater } from "preact/hooks";
 import { AbstractPopup } from "../../../components/AbstractPopup";
-import { Header } from "./ProcessesTable";
+import { IHeader } from "@/abstract/IHeader";
 
-type Element = Header; //{ name: string; enabled: boolean };
+type Element = IHeader; //{ name: string; enabled: boolean };
 
 export const HeadersConfigPopup = (
   params: HTMLAttributes<HTMLDivElement> & {
     isOpen: boolean;
     onClose: () => void;
-    elementsState: [Element[], Dispatch<StateUpdater<Element[]>>];
+    elementsState: [Element[], (els: Element[]) => void];
   },
 ) => {
   const { elementsState, isOpen, onClose, ...rest } = params;

@@ -11,7 +11,8 @@
 		"axios": "^1.16.1",
 		"preact": "^10.26.9",
 		"preact-iso": "^2.12.0",
-		"sonner": "^2.0.7"
+		"sonner": "^2.0.7",
+		"zustand": "^5.0.13"
 	},
 	"devDependencies": {
 		"@preact/preset-vite": "^2.10.2",
